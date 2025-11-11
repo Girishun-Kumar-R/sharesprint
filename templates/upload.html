@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <p class="eyebrow">Step 1</p>
+            <h1>Upload your selfie</h1>
+            <p class="hint">We'll compare it against the event gallery using on-device detections—your original photo never leaves this page.</p>
+        </div>
+    </header>
+    <form class="upload-form" action="{{ url_for('match_faces') }}" method="post" enctype="multipart/form-data">
+        <label class="file-field">
+            <span>Capture or choose a selfie</span>
+            <small>Good lighting + face centered works best. PNG or JPEG up to 10MB.</small>
+            <input type="file" name="selfie" accept="image/*" capture="user" required>
+        </label>
+        <div class="actions">
+            <button type="submit" class="primary">Continue with selfie</button>
+            <a href="{{ url_for('choose_caption', skip='1', origin='upload') }}" class="secondary">Skip personal photos</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <p class="eyebrow">Step 5</p>
+            <h1>You're all set!</h1>
+            <p class="hint">Your post is live on LinkedIn. Share the link with your team or jump back to the gallery.</p>
+        </div>
+    </header>
+    <div class="toast" role="status">
+        Posted! <a href="{{ post_url }}" target="_blank" rel="noopener">View on LinkedIn</a>
+    </div>
+    {% if primary_preview %}
+    <figure class="preview constrained">
+        <img src="{{ primary_preview.preview }}" alt="{{ primary_preview.name or 'Event photo' }}">
+        <span class="veil" data-src="{{ primary_preview.preview }}" aria-hidden="true"></span>
+        <figcaption>{{ primary_preview.name }}</figcaption>
+    </figure>
+    {% endif %}
+    {% if not attachments and text_only %}
+    <div class="preview empty">
+        <p>Shared as a caption-only LinkedIn update.</p>
+    </div>
+    {% endif %}
+    {% if attachments %}
+    <section class="attachments">
+        <h2>Photos shared ({{ attachments|length }})</h2>
+        <ul class="attachment-list">
+            {% for attachment in attachments %}
+            <li class="attachment">
+                <img src="{{ attachment.preview }}" alt="{{ attachment.name }}">
+                <div class="meta">
+                    <strong>{{ attachment.name }}</strong>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+    <div class="caption-output" aria-live="polite">
+        <span class="hint">Caption sent</span>
+        <p>{{ caption if caption else 'No caption provided.' }}</p>
+    </div>
+    {% if not sheet_logged %}
+    <div class="toast error" role="alert">
+        LinkedIn posted successfully, but logging to Google Sheets failed.
+        {% if sheet_error %}<br>{{ sheet_error }}{% endif %}
+    </div>
+    {% endif %}
+    <div class="success-actions">
+        <a class="primary" href="{{ post_url }}" target="_blank" rel="noopener">Open LinkedIn post</a>
+        <a class="secondary" href="{{ url_for('start_flow') }}">Share another selfie</a>
+        <a class="secondary" href="{{ url_for('all_photos') }}">Browse gallery</a>
+    </div>
+</section>
+{% endblock %}

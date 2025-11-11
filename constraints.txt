@@ -1,0 +1,4 @@
+# Pin google-auth-oauthlib to a version compatible with both:
+# - tensorboard==2.13.0 (requires <1.1, >=0.5)
+# - gspread==6.1.4 (requires >=0.4.1)
+google-auth-oauthlib==1.0.0

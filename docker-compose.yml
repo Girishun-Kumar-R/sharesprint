@@ -1,0 +1,16 @@
+version: "3"
+services:
+  web:
+    build: .
+    ports:
+      - "80:5000"
+    environment:
+      FOLDER_ID: "<YOUR_FOLDER_ID>"
+      MODEL_NAME: "Facenet512"
+      DETECTOR_BACKEND: "retinaface"
+      TOP_K: "12"
+      MIN_SCORE: "0.35"
+      BASIC_USER: "admin"
+      BASIC_PASS: "change-me"
+    volumes:
+      - ./data:/data

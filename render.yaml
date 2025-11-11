@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: drive-face-match
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "./boot.sh"
+    autoDeploy: true
+    envVars:
+      - key: FOLDER_ID
+        value: <YOUR_FOLDER_ID>
+      - key: MODEL_NAME
+        value: Facenet512
+      - key: DETECTOR_BACKEND
+        value: retinaface
+      - key: TOP_K
+        value: "12"
+      - key: MIN_SCORE
+        value: "0.35"
+      - key: SA_JSON_B64
+        sync: false
+      - key: BASIC_USER
+        sync: false
+      - key: BASIC_PASS
+        sync: false
+    plan: starter
+    region: oregon
+    disk:
+      name: index
+      mountPath: /data
+      sizeGB: 2

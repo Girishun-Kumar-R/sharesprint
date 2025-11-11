@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <p class="eyebrow">Step 3</p>
+            <h1>All event photos</h1>
+            <p class="hint">Scroll through the gallery and select every shot you want to post. Add as many as you like.</p>
+        </div>
+        <div class="header-actions">
+            <a class="ghost back-link" href="{{ url_for('start_flow') }}" data-back-link>← Back</a>
+            <a class="ghost" href="{{ url_for('choose_caption', skip='1', origin='all') }}">Skip personal photos</a>
+        </div>
+    </header>
+    <form class="selection-form" method="get" action="{{ url_for('choose_caption') }}" data-selection-form>
+        <input type="hidden" name="origin" value="all">
+        {% if mandatory_cards %}
+        <section class="mandatory-block">
+            <h2>Always included</h2>
+            <div class="grid">
+                {% for card in mandatory_cards %}
+                <article class="photo-card locked" data-photo-card data-mandatory="1">
+                    <div class="thumb photo-frame">
+                        <img src="{{ card.preview }}" alt="Mandatory photo">
+                        <span class="badge mandatory">Mandatory</span>
+                        <span class="veil" data-src="{{ card.preview }}" aria-hidden="true"></span>
+                    </div>
+                    <div class="photo-meta">
+                        <h2>{{ card.name }}</h2>
+                        <label class="select-toggle locked">
+                            <input type="checkbox" class="photo-select" name="file_id" value="{{ card.file_id }}" checked disabled data-locked="1">
+                            <span>Required</span>
+                        </label>
+                        <input type="hidden" name="file_id" value="{{ card.file_id }}">
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        <div class="grid" id="photo-grid" data-page="{{ page }}">
+            {% for photo in photos %}
+            <article class="photo-card{% if photo.is_mandatory %} locked{% endif %}" data-photo-card{% if photo.is_mandatory %} data-mandatory="1"{% endif %}>
+                <div class="thumb photo-frame">
+                    <img src="{{ photo.preview }}" alt="Event photo">
+                    {% if photo.is_mandatory %}
+                    <span class="badge mandatory">Mandatory</span>
+                    {% endif %}
+                    <span class="veil" data-src="{{ photo.preview }}" aria-hidden="true"></span>
+                </div>
+                <div class="photo-meta">
+                    <h2>{{ photo.name }}</h2>
+                    <label class="select-toggle{% if photo.is_mandatory %} locked{% endif %}">
+                        <input type="checkbox"
+                               class="photo-select"
+                               name="file_id"
+                               value="{{ photo.file_id }}"
+                               {% if photo.is_mandatory %}checked disabled data-locked="1"{% endif %}>
+                        <span>{% if photo.is_mandatory %}Required{% else %}Include photo{% endif %}</span>
+                    </label>
+                    {% if photo.is_mandatory %}
+                    <input type="hidden" name="file_id" value="{{ photo.file_id }}">
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <footer class="selection-footer">
+            <div class="count" data-selection-count>0 photos selected</div>
+            <div class="actions">
+                <button type="submit" class="primary" data-selection-submit disabled>Continue with selected photos</button>
+                <a href="{{ url_for('choose_caption', skip='1', origin='all') }}" class="secondary">Skip personal photos</a>
+            </div>
+        </footer>
+    </form>
+    <div class="load-more">
+        <a class="secondary" href="{{ url_for('all_photos', p=page + 1) }}">Load more</a>
+    </div>
+</section>
+{% endblock %}

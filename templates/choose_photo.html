@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <p class="eyebrow">Step 2</p>
+            <h1>Best matches</h1>
+            <p class="hint">Pick every photo you want to share. Mandatory sponsor images stay locked so every post looks official.</p>
+        </div>
+        <div class="header-actions">
+            <a class="ghost back-link" href="{{ url_for('start_flow') }}" data-back-link>← Back</a>
+            <a class="ghost" href="{{ url_for('all_photos') }}">Browse all photos</a>
+        </div>
+    </header>
+    {% if matches and low_confidence %}
+    <p class="hint warning">
+        No high-confidence matches (≥ {{ '%.2f'|format(match_threshold) }}). These are the closest results—double-check before posting.
+    </p>
+    {% endif %}
+    {% if not matches %}
+    <p class="hint">We couldn't find solid matches from that selfie. You can browse the full gallery or go straight to captions.</p>
+    <div class="actions">
+        <a class="primary" href="{{ url_for('all_photos') }}">Browse all photos</a>
+        <a class="secondary" href="{{ url_for('choose_caption', skip='1', origin='matches') }}">Skip personal photos</a>
+    </div>
+    {% else %}
+    <form class="selection-form" method="get" action="{{ url_for('choose_caption') }}" data-selection-form>
+        <input type="hidden" name="origin" value="matches">
+        {% if mandatory_cards %}
+        <section class="mandatory-block">
+            <h2>Always included</h2>
+            <div class="grid">
+                {% for card in mandatory_cards %}
+                <article class="photo-card locked" data-photo-card data-mandatory="1">
+                    <div class="thumb photo-frame">
+                        <img src="{{ card.preview }}" alt="Mandatory photo">
+                        <span class="badge mandatory">Mandatory</span>
+                        <span class="veil" data-src="{{ card.preview }}" aria-hidden="true"></span>
+                    </div>
+                    <div class="photo-meta">
+                        <h2>{{ card.name }}</h2>
+                        <label class="select-toggle locked">
+                            <input type="checkbox" class="photo-select" name="file_id" value="{{ card.file_id }}" checked disabled data-locked="1">
+                            <span>Required</span>
+                        </label>
+                        <input type="hidden" name="file_id" value="{{ card.file_id }}">
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        <div class="grid">
+            {% for match in matches %}
+            <article class="photo-card{% if match.is_mandatory %} locked{% endif %}" data-photo-card{% if match.is_mandatory %} data-mandatory="1"{% endif %}>
+                <div class="thumb photo-frame">
+                    <img src="{{ match.preview }}" alt="Match photo">
+                    {% if match.is_mandatory %}
+                    <span class="badge mandatory">Mandatory</span>
+                    {% else %}
+                    <span class="badge secondary">Best match</span>
+                    {% endif %}
+                    <span class="veil" data-src="{{ match.preview }}" aria-hidden="true"></span>
+                </div>
+                <div class="photo-meta">
+                    <h2>{{ match.name }}</h2>
+                    <p class="hint">Similarity {{ '%.2f'|format(match.score) }}</p>
+                    <label class="select-toggle{% if match.is_mandatory %} locked{% endif %}">
+                        <input type="checkbox"
+                               class="photo-select"
+                               name="file_id"
+                               value="{{ match.file_id }}"
+                               {% if match.is_mandatory %}checked disabled data-locked="1"{% elif match.file_id in default_selected %}checked{% endif %}>
+                        <span>{% if match.is_mandatory %}Required{% else %}Include photo{% endif %}</span>
+                    </label>
+                    {% if match.is_mandatory %}
+                    <input type="hidden" name="file_id" value="{{ match.file_id }}">
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <footer class="selection-footer">
+            <div class="count" data-selection-count>0 photos selected</div>
+            <div class="actions">
+                <button type="submit" class="primary" data-selection-submit disabled>Continue with selected photos</button>
+                <a href="{{ url_for('choose_caption', skip='1', origin='matches') }}" class="secondary">Skip personal photos</a>
+            </div>
+        </footer>
+    </form>
+    <p class="skip-link">
+        Prefer to post only the event banner? <a href="{{ url_for('choose_caption', skip='1', origin='matches') }}">Skip personal photos</a>.
+    </p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+{% block content %}
+{% set origin_code = origin or 'all' %}
+{% if origin_code == 'matches' %}
+    {% set back_url = url_for('resume_matches') %}
+{% elif origin_code == 'upload' %}
+    {% set back_url = url_for('upload_form') %}
+{% elif origin_code == 'all' %}
+    {% set back_url = url_for('all_photos') %}
+{% else %}
+    {% set back_url = url_for('upload_form') %}
+{% endif %}
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <p class="eyebrow">Step 4</p>
+            <h1>Finalize your post</h1>
+            <p class="hint">Confirm the photos, pick a caption, and share to LinkedIn in one tap.</p>
+        </div>
+        <div class="header-actions">
+            <a class="ghost back-link" href="{{ back_url }}" data-back-link>← Back</a>
+        </div>
+    </header>
+    <div class="caption-layout">
+        <div class="caption-main">
+            {% if primary_image %}
+            <figure class="preview constrained">
+                <img src="{{ primary_image.preview }}" alt="Selected photo" class="main-photo">
+                <span class="veil" data-src="{{ primary_image.preview }}" aria-hidden="true"></span>
+                <figcaption>{{ primary_image.name }}</figcaption>
+            </figure>
+            {% else %}
+            <div class="preview empty">
+                <p>No personal photos selected. This will be a caption-only LinkedIn post.</p>
+            </div>
+            {% endif %}
+            {% if images|length > 1 %}
+                <div class="thumb-strip" aria-label="Photos included in the post">
+                    {% for image in images %}
+                    <div class="thumb">
+                        <img src="{{ image.preview }}" alt="{{ image.name }}">
+                        {% if image.is_mandatory %}
+                    <span class="badge mandatory">Mandatory</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="caption-right">
+            {% if post_error %}
+            <div class="toast error" role="alert">{{ post_error }}</div>
+            {% endif %}
+            <form id="post-form" class="caption-form" method="post" action="{{ url_for('post_linkedin') }}">
+                <section class="attachments">
+                    <h2>Photos included ({{ images|length }})</h2>
+                    {% if images %}
+                    <ul class="attachment-list">
+                        {% for image in images %}
+                        <li class="attachment{% if image.is_mandatory %} locked{% endif %}">
+                            <img src="{{ image.preview }}" alt="{{ image.name }}">
+                            <div class="meta">
+                                <strong>{{ image.name }}</strong>
+                                {% if image.is_mandatory %}
+                                <span class="pill">Required</span>
+                                {% endif %}
+                            </div>
+                            <input type="hidden" name="file_id" value="{{ image.file_id }}">
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="hint">Skipping personal photos. We'll post your caption without images.</p>
+                    {% endif %}
+                </section>
+                {% if text_only_mode %}
+                <input type="hidden" name="allow_text_only" value="1">
+                {% endif %}
+                <fieldset>
+                    <legend>Choose a caption</legend>
+                    {% for template in caption_templates %}
+                    <label class="radio">
+                        <input type="radio" name="template_id" value="{{ template.id }}" data-caption="{{ template.label }}"
+                            {% if selected_template == template.id %}checked{% endif %}>
+                        <span>{{ template.label }}</span>
+                    </label>
+                    {% endfor %}
+                    <label class="radio">
+                        <input type="radio" name="template_id" value="custom" {% if selected_template == 'custom' %}checked{% endif %}>
+                        <span>Custom caption</span>
+                    </label>
+                </fieldset>
+                <label class="custom-caption">
+                    <span>Custom text</span>
+                    <textarea name="caption" id="caption-text" rows="4" maxlength="300" placeholder="Say something memorable.">{{ prefill_caption|trim }}</textarea>
+                    <span class="counter" id="caption-counter">0 / 300</span>
+                </label>
+                <div class="preview-box" id="caption-preview"></div>
+                <button type="submit" class="primary" id="post-button">Post to LinkedIn</button>
+            </form>
+        </div>
+    </div>
+</section>
+<script>
+(function(){
+    const form = document.getElementById('post-form');
+    const textarea = document.getElementById('caption-text');
+    const radios = form.querySelectorAll('input[type="radio"][name="template_id"]');
+    const counter = document.getElementById('caption-counter');
+    const preview = document.getElementById('caption-preview');
+
+    function selectedRadio(){
+        return Array.from(radios).find(r => r.checked);
+    }
+
+    function syncTextareaFromRadio(radio){
+        if(radio && radio.dataset.caption){
+            textarea.value = radio.dataset.caption;
+        }
+    }
+
+    function updatePreview(){
+        const radio = selectedRadio();
+        let previewText = textarea.value.trim();
+        if(radio && radio.dataset.caption && radio.value !== 'custom'){
+            previewText = radio.dataset.caption;
+        }
+        counter.textContent = `${textarea.value.length} / ${textarea.maxLength}`;
+        preview.textContent = previewText || ' ';
+    }
+
+    const initialRadio = selectedRadio();
+    syncTextareaFromRadio(initialRadio);
+    updatePreview();
+
+    radios.forEach(radio => radio.addEventListener('change', () => {
+        syncTextareaFromRadio(radio);
+        updatePreview();
+    }));
+
+    textarea.addEventListener('input', () => {
+        const customRadio = Array.from(radios).find(r => r.value === 'custom');
+        if(customRadio){
+            customRadio.checked = true;
+        }
+        updatePreview();
+    });
+
+    form.addEventListener('submit', () => {
+        const radio = selectedRadio();
+        if(radio && radio.dataset.caption && radio.value !== 'custom'){
+            textarea.value = radio.dataset.caption;
+        } else {
+            textarea.value = textarea.value.trim();
+        }
+    });
+})();
+</script>
+{% endblock %}

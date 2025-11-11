@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ShareSprint</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script defer src="{{ url_for('static', filename='gallery.js') }}"></script>
+</head>
+<body class="app-body noselect">
+    <div class="app-background" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="noise-layer"></div>
+    </div>
+    <div class="app-shell">
+        <header class="app-header glass-surface">
+            <div class="branding">
+                <span class="brand-mark">ShareSprint</span>
+                {% if event_id %}<span class="event-pill">Event: {{ event_id }}</span>{% endif %}
+            </div>
+            {% if event_id %}
+            <a class="btn-new-search" href="{{ url_for('reset_flow', event=event_id) }}">New search</a>
+            {% else %}
+            <a class="btn-new-search" href="{{ url_for('reset_flow') }}">New search</a>
+            {% endif %}
+        </header>
+        {% set steps = [
+            {'label': 'Upload selfie'},
+            {'label': 'Best matches'},
+            {'label': 'All photos'},
+            {'label': 'Caption'},
+            {'label': 'Share'}
+        ] %}
+        {% set upload_link = url_for('upload_form', event=event_id) if event_id else url_for('upload_form') %}
+        {% set step_links = {
+            1: upload_link,
+            2: url_for('resume_matches'),
+            3: url_for('all_photos'),
+            4: None,
+            5: None
+        } %}
+        <nav class="progress-nav glass-surface">
+            <ul class="stepper">
+                {% for step in steps %}
+                {% set step_index = loop.index %}
+                {% set link = step_links.get(step_index) %}
+                {% set is_done = step_index < current_step %}
+                {% set is_active = step_index == current_step %}
+                {% set can_click = link and step_index <= max_step and step_index < current_step %}
+                <li data-step="{{ step_index }}"
+                    class="{% if is_done %}done{% elif is_active %}active{% endif %}{% if can_click %} clickable{% endif %}">
+                    {% if can_click %}
+                    <a href="{{ link }}">{{ step.label }}</a>
+                    {% else %}
+                    <span>{{ step.label }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        <main class="app-main">
+            {% block content %}{% endblock %}
+        </main>
+        <footer class="app-footer glass-surface">
+            <small>&copy; {{ 2025 }} ShareSprint. Photos protected.</small>
+        </footer>
+    </div>
+</body>
+</html>

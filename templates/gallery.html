@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview Gallery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  </head>
+  <body class="noselect">
+    <header class="gallery-header">
+      <div>
+        <h1>Results ({{ count }})</h1>
+        <p class="subtitle">Protected previews for high-similarity matches.</p>
+      </div>
+      <a href="/" class="new-search" rel="noopener">New search</a>
+    </header>
+
+    {% if matches %}
+    <main class="gallery-grid" id="galleryGrid">
+      {% for item in matches %}
+      {% set signed_url = preview_url(item.id) %}
+      <figure
+        class="thumb"
+        data-index="{{ loop.index0 }}"
+        data-id="{{ item.id }}"
+        data-name="{{ item.name }}"
+        data-sim="{{ '%.2f' | format(item.sim) }}"
+        data-preview="{{ signed_url }}"
+      >
+        <div class="thumb-frame">
+          <img
+            src="{{ signed_url }}"
+            alt="{{ item.name }}"
+            loading="lazy"
+            draggable="false"
+            referrerpolicy="no-referrer"
+          />
+          <div class="veil" aria-hidden="true"></div>
+        </div>
+        <figcaption>
+          <span class="filename" title="{{ item.name }}">{{ item.name }}</span>
+          <span class="pill">sim {{ '%.2f' | format(item.sim) }}</span>
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </main>
+    {% else %}
+    <div class="empty-state">
+      <p>No matches found. Try another photo.</p>
+      <a href="/" class="btn">New search</a>
+    </div>
+    {% endif %}
+
+    <div id="lightbox" class="lightbox" aria-hidden="true">
+      <button class="lightbox-close" id="lightboxClose" aria-label="Close preview">&times;</button>
+      <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Previous match">&#10094;</button>
+      <button class="lightbox-nav next" id="lightboxNext" aria-label="Next match">&#10095;</button>
+      <canvas id="lightboxCanvas"></canvas>
+      <div class="lightbox-meta">
+        <span id="lightboxName" class="lightbox-name"></span>
+        <span id="lightboxSim" class="pill"></span>
+      </div>
+    </div>
+
+    <div id="screenVeil" class="screen-veil" hidden>
+      <span>Screen capture disabled.</span>
+    </div>
+
+    <script>
+      window.__GALLERY__ = {
+        count: {{ matches|length }},
+      };
+    </script>
+    <script src="{{ url_for('static', filename='gallery.js') }}" defer></script>
+  </body>
+</html>
